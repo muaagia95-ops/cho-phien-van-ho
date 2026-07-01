@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản trị ảnh - Chợ phiên Vân Hồ</title>
+<script src="data.js"></script>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f6f8f5;color:#1f2937}.wrap{max-width:1100px;margin:auto;padding:28px}
+h1{color:#0b6b3a}.box{background:white;border-radius:18px;padding:20px;margin:18px 0;box-shadow:0 8px 24px #0001}
+textarea,input{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-family:monospace}button{background:#0b6b3a;color:white;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer;margin:6px 6px 6px 0}.small{color:#6b7280;font-size:14px;line-height:1.6}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.preview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.preview img{width:100%;height:120px;object-fit:cover;border-radius:12px;background:#e5e7eb}
+@media(max-width:700px){.row,.preview{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Quản trị ảnh - Chợ phiên Vân Hồ</h1>
+<p class="small">Trang này giúp tạo lại nội dung file <b>data.js</b>. Vì GitHub Pages là website tĩnh nên không thể tự lưu ảnh lên GitHub; sau khi tạo xong, Nhị ca copy nội dung data.js và upload ảnh theo đúng đường dẫn.</p>
+<div class="box">
+<h2>1. Cách thay ảnh nhanh nhất</h2>
+<p>Đặt ảnh thật theo đúng thư mục và tên file, ví dụ:</p>
+<pre>images/cong-cho/01.jpg
+images/cong-cho/02.jpg
+images/nong-san/01.jpg
+images/am-thuc/01.jpg
+images/van-hoa/01.jpg</pre>
+<p>Sau đó vào GitHub → Add file → Upload files → kéo thư mục images lên → Commit changes.</p>
+</div>
+<div class="box">
+<h2>2. Danh sách ảnh hiện tại</h2>
+<div id="sections"></div>
+</div>
+<div class="box">
+<h2>3. Tạo file data.js mới</h2>
+<p class="small">Có thể sửa trực tiếp nội dung bên dưới, rồi bấm sao chép. Sau đó vào GitHub mở file data.js → Edit → dán thay toàn bộ → Commit.</p>
+<textarea id="output" rows="22"></textarea>
+<br><button onclick="copyData()">Sao chép data.js</button>
+<button onclick="downloadData()">Tải data.js</button>
+</div>
+<div class="box">
+<h2>4. Xem trước ảnh</h2>
+<div class="preview" id="preview"></div>
+</div>
+</div>
+<script>
+function render(){
+  sections.innerHTML='';
+  preview.innerHTML='';
+  SITE_DATA.sections.forEach(sec=>{
+    sections.innerHTML += `<h3>${sec.icon} ${sec.title}</h3><textarea rows="4">${sec.images.join('\n')}</textarea>`;
+    sec.images.forEach(src=>preview.innerHTML+=`<img src="${src}">`);
+  });
+  output.value='const SITE_DATA = '+JSON.stringify(SITE_DATA,null,2)+';';
+}
+function copyData(){navigator.clipboard.writeText(output.value);alert('Đã sao chép nội dung data.js');}
+function downloadData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([output.value],{type:'text/javascript'}));a.download='data.js';a.click();}
+render();
+</script>
+</body>
+</html>
