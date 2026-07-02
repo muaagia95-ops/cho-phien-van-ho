@@ -9,10 +9,13 @@
 :root{--green:#0b6b3a;--green2:#0e8a4d;--gold:#f3c15f;--dark:#123524;--bg:#f7faf5;--text:#1f2937}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}a{text-decoration:none}
 nav{position:sticky;top:0;z-index:20;background:rgba(11,107,58,.94);color:white;padding:13px 7%;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 20px #0002}
-nav a,nav b{color:white}.hero{padding:70px 7%;color:white;background:linear-gradient(120deg,#073d25ee,#0b6b3aaa);background-size:cover;background-position:center}.hero h1{font-size:clamp(40px,6vw,72px);margin:0 0 12px}.hero p{font-size:20px;line-height:1.5;max-width:900px}
+nav a,nav b{color:white}
+.hero{padding:70px 7%;color:white;background:linear-gradient(120deg,#073d25ee,#0b6b3aaa);background-size:cover;background-position:center}
+.hero h1{font-size:clamp(40px,6vw,72px);margin:0 0 12px}.hero p{font-size:20px;line-height:1.5;max-width:900px}
 section{padding:60px 7%}.title{text-align:center;margin-bottom:30px}.title h2{font-size:38px;color:var(--dark);margin:0 0 8px}.title p{color:#607080;font-size:18px;margin:0}
-.album{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.album img{width:100%;height:210px;object-fit:cover;border-radius:18px;cursor:pointer;box-shadow:0 8px 20px #0002}
 .groupTitle{font-size:28px;color:var(--green);margin:38px 0 18px}
+.album{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.album img{width:100%;height:210px;object-fit:cover;border-radius:18px;cursor:pointer;box-shadow:0 8px 20px #0002}
+.empty{background:white;border-radius:18px;padding:22px;color:#607080;box-shadow:0 8px 20px #0001}
 .lightbox{display:none;position:fixed;inset:0;background:#000d;z-index:100;align-items:center;justify-content:center;padding:20px}.lightbox img{max-width:96vw;max-height:90vh;border-radius:16px}.lightbox.show{display:flex}
 footer{text-align:center;background:#08351f;color:white;padding:30px 7%}
 @media(max-width:900px){.album{grid-template-columns:1fr 1fr}}
@@ -22,19 +25,49 @@ footer{text-align:center;background:#08351f;color:white;padding:30px 7%}
 <body>
 <nav><b>🌿 CHỢ PHIÊN VÂN HỒ</b><a href="index.html">← Về trang chính</a></nav>
 <header class="hero" id="hero"><h1>📷 Hình ảnh</h1><p>Toàn bộ hình ảnh hoạt động tại chợ phiên.</p></header>
-<section><div class="title"><h2>Album hình ảnh</h2><p>Ảnh tự hiển thị từ 01.jpg đến 100.jpg trong từng thư mục</p></div><div id="content"></div></section>
+
+<section>
+  <div class="title">
+    <h2>Album hình ảnh</h2>
+    <p>Chỉ hiển thị những ảnh đã có trong thư mục, không hiện khung trống.</p>
+  </div>
+  <div id="content"></div>
+</section>
+
 <footer><h3>CHỢ PHIÊN VÂN HỒ</h3><p>Không gian số quảng bá văn hóa, du lịch và sản phẩm địa phương</p></footer>
 <div class="lightbox" id="lightbox"><img id="lightboxImg"></div>
+
 <script>
 const pad=n=>String(n).padStart(2,"0");
 const imagePath=(section,n)=>`${section.folder}/${pad(n)}.jpg`;
+
 const content=document.getElementById("content");
 const hero=document.getElementById("hero");
 const lightbox=document.getElementById("lightbox");
 const lightboxImg=document.getElementById("lightboxImg");
-hero.style.backgroundImage=`linear-gradient(120deg,#073d25ee,#0b6b3aaa),url('${imagePath(SITE_DATA.sections[0],1)}')`;
 
-SITE_DATA.sections.forEach(section=>{
+if(SITE_DATA.sections && SITE_DATA.sections.length){
+  hero.style.backgroundImage=`linear-gradient(120deg,#073d25ee,#0b6b3aaa),url('${imagePath(SITE_DATA.sections[0],1)}')`;
+}
+
+function addImage(grid, src, sectionTitle, number){
+  const img=document.createElement("img");
+  img.src=src;
+  img.alt=`${sectionTitle} ${pad(number)}`;
+  img.onclick=()=>{lightboxImg.src=src;lightbox.classList.add("show")};
+  grid.appendChild(img);
+}
+
+function checkImage(src){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>resolve(true);
+    img.onerror=()=>resolve(false);
+    img.src=src;
+  });
+}
+
+async function loadSection(section){
   const title=document.createElement("h2");
   title.className="groupTitle";
   title.textContent=section.icon+" "+section.title;
@@ -44,16 +77,40 @@ SITE_DATA.sections.forEach(section=>{
   grid.className="album";
   content.appendChild(grid);
 
-  for(let i=1;i<=(SITE_DATA.imageMax||100);i++){
+  const max=SITE_DATA.imageMax || 1000;
+  const stopAfterMissing=20;
+  let missing=0;
+  let found=0;
+
+  for(let i=1;i<=max;i++){
     const src=imagePath(section,i);
-    const img=document.createElement("img");
-    img.src=src;
-    img.alt=section.title+" "+pad(i);
-    img.onerror=()=>img.remove();
-    img.onclick=()=>{lightboxImg.src=src;lightbox.classList.add("show")};
-    grid.appendChild(img);
+    const ok=await checkImage(src);
+
+    if(ok){
+      addImage(grid, src, section.title, i);
+      found++;
+      missing=0;
+    }else{
+      missing++;
+      if(found>0 && missing>=stopAfterMissing) break;
+      if(found===0 && missing>=stopAfterMissing) break;
+    }
   }
-});
+
+  if(found===0){
+    const empty=document.createElement("div");
+    empty.className="empty";
+    empty.textContent="Chưa có ảnh trong mục này.";
+    grid.replaceWith(empty);
+  }
+}
+
+(async function(){
+  for(const section of SITE_DATA.sections){
+    await loadSection(section);
+  }
+})();
+
 lightbox.onclick=()=>lightbox.classList.remove("show");
 </script>
 </body>
