@@ -29,12 +29,12 @@ footer{text-align:center;background:#08351f;color:white;padding:30px 7%}
 <section>
   <div class="title">
     <h2>Danh sách clip</h2>
-    <p>Clip tự hiển thị từ clip01.mp4 đến clip1000.mp4 trong thư mục clips</p>
+    <p>Clip tự hiển thị theo số lượng đặt trong data.js</p>
   </div>
   <div class="clipGrid" id="clipGrid"></div>
-  <div class="empty" id="emptyBox" style="display:none">
-    <h3>Chưa có clip</h3>
-    <p>Copy video vào thư mục clips và đặt tên clip01.mp4, clip02.mp4...</p>
+  <div class="empty" id="emptyBox">
+    <h3>Đang kiểm tra clip...</h3>
+    <p>Nếu chưa có clip, hãy copy video vào thư mục clips và đặt tên clip01.mp4, clip02.mp4...</p>
   </div>
 </section>
 
@@ -55,41 +55,50 @@ if(SITE_DATA.sections && SITE_DATA.sections.length){
 const clipFolder=SITE_DATA.clipFolder || "clips";
 const clipPrefix=SITE_DATA.clipPrefix || "clip";
 const clipExt=SITE_DATA.clipExt || "mp4";
-const clipMax=SITE_DATA.clipMax || 1000;
+const clipMax=SITE_DATA.clipMax || 1;
 
-let shown=0;
+let loadedCount=0;
+let checkedCount=0;
+
+function updateEmptyBox(){
+  if(loadedCount>0){
+    emptyBox.style.display="none";
+  }else if(checkedCount>=clipMax){
+    emptyBox.innerHTML='<h3>Chưa có clip</h3><p>Copy video vào thư mục clips và đặt tên clip01.mp4, clip02.mp4...</p>';
+    emptyBox.style.display="block";
+  }
+}
 
 for(let i=1;i<=clipMax;i++){
   const name=`${clipPrefix}${pad(i)}.${clipExt}`;
   const src=`${clipFolder}/${name}`;
-
-  const card=document.createElement("div");
-  card.className="clipCard";
 
   const video=document.createElement("video");
   video.controls=true;
   video.preload="metadata";
   video.src=src;
 
-  const body=document.createElement("div");
-  body.className="clipBody";
-  body.innerHTML=`<h3>Clip ${pad(i)}</h3><p>${name}</p>`;
-
   video.onloadedmetadata=()=>{
-    shown++;
-    emptyBox.style.display="none";
+    loadedCount++;
+
+    const card=document.createElement("div");
+    card.className="clipCard";
+
+    const body=document.createElement("div");
+    body.className="clipBody";
+    body.innerHTML=`<h3>Clip ${pad(i)}</h3><p>${name}</p>`;
+
+    card.appendChild(video);
+    card.appendChild(body);
+    clipGrid.appendChild(card);
+
+    updateEmptyBox();
   };
 
   video.onerror=()=>{
-    card.remove();
-    if(shown===0 && document.querySelectorAll(".clipCard").length===0){
-      emptyBox.style.display="block";
-    }
+    checkedCount++;
+    updateEmptyBox();
   };
-
-  card.appendChild(video);
-  card.appendChild(body);
-  clipGrid.appendChild(card);
 }
 </script>
 </body>
