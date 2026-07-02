@@ -86,7 +86,9 @@ for(let i=1;i<=clipMax;i++){
 
     const body=document.createElement("div");
     body.className="clipBody";
-    body.innerHTML=`<h3>Clip ${pad(i)}</h3><p>${name}</p>`;
+    const clipKey = `${clipPrefix}${pad(i)}`;
+const clipTitle = SITE_DATA.clipTitles?.[clipKey] || `Clip ${pad(i)}`;
+body.innerHTML=`<h3>${clipTitle}</h3>`;
 
     card.appendChild(video);
     card.appendChild(body);
